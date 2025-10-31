@@ -1,53 +1,38 @@
-// 🔆 Universal Fullbright Toggle for EaglerXForge
-// Press F to toggle brightness instantly
-
+// 🔆 Fullbright setting for EaglerXForge
 ModAPI.require("settings");
 
 (function() {
-    var gamma = 1000;
-    var normalGamma = 1;
-    var toggled = false;
+    var gammaOn = 1000;
+    var gammaOff = 1;
+    var key = "fullbrightEnabled"; // setting name key
 
-    function setGamma(value) {
-        try {
-            if ("gammaSetting" in ModAPI.settings) ModAPI.settings.gammaSetting = value;
-            else if ("gamma" in ModAPI.settings) ModAPI.settings.gamma = value;
-            else if (typeof ModAPI.settings.setGamma === "function") ModAPI.settings.setGamma(value);
-            if (typeof ModAPI.settings.reload === "function") ModAPI.settings.reload();
-        } catch (e) {
-            console.error("[Fullbright] Failed to set gamma:", e);
-        }
-    }
-
-    // simple logger to console instead of chat (chat GUI is null)
-    function notify(msg) {
-        console.log("[Fullbright] " + msg);
-    }
-
-    // Try to detect readiness by retrying until ModAPI.settings exists
-    function waitUntilReady(callback) {
-        if (ModAPI && ModAPI.settings) {
-            callback();
-        } else {
-            setTimeout(function() { waitUntilReady(callback); }, 500);
-        }
-    }
-
-    waitUntilReady(function() {
-        setGamma(normalGamma);
-        notify("Loaded! Press F to toggle fullbright.");
-
-        ModAPI.addEventListener("key", function(ev) {
-            if (ev.key === 70) { // F key
-                toggled = !toggled;
-                if (toggled) {
-                    setGamma(gamma);
-                    notify("Enabled.");
-                } else {
-                    setGamma(normalGamma);
-                    notify("Disabled.");
-                }
+    // Register a new checkbox in Video Settings
+    ModAPI.addSetting({
+        category: "video",
+        name: "Fullbright",
+        description: "Makes the world fully bright even in darkness.",
+        key: key,
+        type: "toggle",
+        default: false,
+        onChange: function(enabled) {
+            try {
+                ModAPI.settings.gammaSetting = enabled ? gammaOn : gammaOff;
+                if (typeof ModAPI.settings.reload === "function")
+                    ModAPI.settings.reload();
+                console.log("[Fullbright] " + (enabled ? "Enabled" : "Disabled"));
+            } catch (e) {
+                console.error("[Fullbright] Error applying gamma:", e);
             }
-        });
+        }
     });
+
+    // Apply state on load
+    try {
+        var enabled = ModAPI.getSetting(key);
+        ModAPI.settings.gammaSetting = enabled ? gammaOn : gammaOff;
+        if (typeof ModAPI.settings.reload === "function")
+            ModAPI.settings.reload();
+    } catch (e) {
+        console.error("[Fullbright] Initialization failed:", e);
+    }
 })();
