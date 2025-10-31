@@ -1,5 +1,6 @@
-// 🔆 Fullbright Toggle for EaglerXForge (F key = 70)
-// Works even if ModAPI.displayToChat or "load" event aren't available
+// 🔆 Universal Fullbright Toggle for EaglerXForge
+// Press F to toggle brightness instantly
+
 ModAPI.require("settings");
 
 (function() {
@@ -18,31 +19,35 @@ ModAPI.require("settings");
         }
     }
 
+    // simple logger to console instead of chat (chat GUI is null)
     function notify(msg) {
-        // Try chat, fallback to console if unavailable
-        try {
-            ModAPI.displayToChat({msg: msg});
-        } catch {
-            console.log("[Fullbright] " + msg);
+        console.log("[Fullbright] " + msg);
+    }
+
+    // Try to detect readiness by retrying until ModAPI.settings exists
+    function waitUntilReady(callback) {
+        if (ModAPI && ModAPI.settings) {
+            callback();
+        } else {
+            setTimeout(function() { waitUntilReady(callback); }, 500);
         }
     }
 
-    // Delay initialization slightly so settings exist
-    setTimeout(function() {
+    waitUntilReady(function() {
         setGamma(normalGamma);
-        notify("Fullbright script loaded. Press F to toggle.");
+        notify("Loaded! Press F to toggle fullbright.");
 
         ModAPI.addEventListener("key", function(ev) {
             if (ev.key === 70) { // F key
                 toggled = !toggled;
                 if (toggled) {
                     setGamma(gamma);
-                    notify("Fullbright enabled!");
+                    notify("Enabled.");
                 } else {
                     setGamma(normalGamma);
-                    notify("Fullbright disabled!");
+                    notify("Disabled.");
                 }
             }
         });
-    }, 2000); // Wait 2 seconds after script load for API to initialize
+    });
 })();
