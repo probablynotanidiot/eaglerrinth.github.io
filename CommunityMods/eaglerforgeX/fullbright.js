@@ -1,21 +1,25 @@
 ModAPI.require("settings");
-var gamma = 1000
-var toggled = true
-ModAPI.settings.gammaSetting = gamma
-ModAPI.settings.reload()
-ModAPI.addEventListener("key", function(ev){
-    if(ev.key == 33){
-        if(!toggled){
-            ModAPI.settings.gammaSetting = gamma
-            ModAPI.settings.reload()
-            ModAPI.displayToChat({msg: "fullbright enabled!"})
-            toggled = true
-        } else{
-            ModAPI.settings.gammaSetting = 1
-            ModAPI.settings.reload()
-            ModAPI.displayToChat({msg: "fullbright disabled!"})
-            toggled = false
+
+var gamma = 1000;
+var normalGamma = 1;
+var toggled = true;
+
+// Start with fullbright on
+ModAPI.settings.gammaSetting = gamma;
+ModAPI.displayToChat({msg: "Fullbright enabled!"});
+
+// Listen for key press events
+ModAPI.addEventListener("key", function(ev) {
+    // F key has keyCode 70
+    if (ev.key == 70) {
+        if (!toggled) {
+            ModAPI.settings.gammaSetting = gamma;
+            ModAPI.displayToChat({msg: "Fullbright enabled!"});
+            toggled = true;
+        } else {
+            ModAPI.settings.gammaSetting = normalGamma;
+            ModAPI.displayToChat({msg: "Fullbright disabled!"});
+            toggled = false;
         }
     }
-        
-})
+});
