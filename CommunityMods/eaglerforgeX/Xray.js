@@ -1,42 +1,60 @@
-//Coalest xray mod to ever exist!
+// 💎 Clean, simple, and instant X-Ray toggle
+(function() {
+    ModAPI.require("blocks");
 
-//IIFE. I like scoped variables.
-(function () {
-    var enabled = false
-    ModAPI.addEventListener("key", function(ev){
-        if(ev.key == 45){// the "x" key
-          if(enabled){
-                disable()
-                enabled = false
-          } else{
-                update(); //Trigger the coal xray.
-                enabled = true
-          }
-        }
-    })
-    var targets = ["diamond_block","diamond_ore","gold_block","gold_ore","iron_block","iron_ore","coal_block","coal_ore","emerald_ore","emerald_block","redstone_ore","redstone_block","lapis_ore","lapis_block","chest","furnace","lit_furnace","ender_chest"]; //The target blocks
-    var allblocks = Object.keys(ModAPI.blocks); //List of all block IDsw
-    function update() {
-      ModAPI.displayToChat({msg: "xray Enabled!"})
-      allblocks.forEach(block=>{ //Loop through all the blocks
-        if (targets.includes(block)) { //If it is in the targets list, force it to render.
-          ModAPI.blocks[block].forceRender = true;
-          ModAPI.blocks[block].reload(); //Push the changes.
-        } else if (ModAPI.blocks[block] && ("noRender" in ModAPI.blocks[block])) { //Otherwise, if it is a valid block, and can be set to not render, do so.
-          ModAPI.blocks[block].noRender = true;
-          ModAPI.blocks[block].reload(); //Push the changes.
-        }
-      });
-      ModAPI.reloadchunks()
+    var enabled = false;
+    var targets = [
+        "diamond_block", "diamond_ore",
+        "gold_block", "gold_ore",
+        "iron_block", "iron_ore",
+        "coal_block", "coal_ore",
+        "emerald_block", "emerald_ore",
+        "redstone_block", "redstone_ore",
+        "lapis_block", "lapis_ore",
+        "chest", "furnace", "lit_furnace", "ender_chest"
+    ];
+
+    var allBlocks = Object.keys(ModAPI.blocks);
+
+    function enableXray() {
+        ModAPI.displayToChat({msg: "X-Ray Enabled!"});
+        allBlocks.forEach(block => {
+            let blk = ModAPI.blocks[block];
+            if (!blk) return;
+
+            if (targets.includes(block)) {
+                blk.noRender = false;
+                blk.forceRender = true;
+            } else if ("noRender" in blk) {
+                blk.noRender = true;
+                blk.forceRender = false;
+            }
+            blk.reload();
+        });
+        ModAPI.reloadchunks();
     }
-    function disable(){
-      ModAPI.displayToChat({msg: "xray Disabled!"})
-              allblocks.forEach(block=>{ //Loop through all the blocks
- if (ModAPI.blocks[block] && ("noRender" in ModAPI.blocks[block])) { 
-          ModAPI.blocks[block].noRender = false;
-          ModAPI.blocks[block].reload(); //Push the changes.
-        }
-      });
-    ModAPI.reloadchunks()
+
+    function disableXray() {
+        ModAPI.displayToChat({msg: "X-Ray Disabled!"});
+        allBlocks.forEach(block => {
+            let blk = ModAPI.blocks[block];
+            if (!blk) return;
+
+            if ("noRender" in blk) {
+                blk.noRender = false;
+                blk.forceRender = false;
+                blk.reload();
+            }
+        });
+        ModAPI.reloadchunks();
     }
-  })();
+
+    // Toggle with "X" key (key code 88)
+    ModAPI.addEventListener("key", function(ev) {
+        if (ev.key == 88) { // "X" key
+            enabled = !enabled;
+            if (enabled) enableXray();
+            else disableXray();
+        }
+    });
+})();
