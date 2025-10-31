@@ -1,31 +1,48 @@
+// 🔆 Fullbright Toggle for EaglerXForge (F key = 70)
+// Works even if ModAPI.displayToChat or "load" event aren't available
 ModAPI.require("settings");
 
-var gamma = 1000;
-var normalGamma = 1;
-var toggled = true;
+(function() {
+    var gamma = 1000;
+    var normalGamma = 1;
+    var toggled = false;
 
-// Wait until the client fully loads
-ModAPI.addEventListener("load", function() {
-    // Start with fullbright enabled
-    ModAPI.settings.gammaSetting = gamma;
-    try {
-        ModAPI.displayToChat({ msg: "§eFullbright enabled!" });
-    } catch (e) {
-        console.log("[Fullbright] Chat not ready, skipping message:", e);
+    function setGamma(value) {
+        try {
+            if ("gammaSetting" in ModAPI.settings) ModAPI.settings.gammaSetting = value;
+            else if ("gamma" in ModAPI.settings) ModAPI.settings.gamma = value;
+            else if (typeof ModAPI.settings.setGamma === "function") ModAPI.settings.setGamma(value);
+            if (typeof ModAPI.settings.reload === "function") ModAPI.settings.reload();
+        } catch (e) {
+            console.error("[Fullbright] Failed to set gamma:", e);
+        }
     }
 
-    // Listen for key press (F = 70)
-    ModAPI.addEventListener("key", function(ev) {
-        if (ev.key === 70) {
-            if (!toggled) {
-                ModAPI.settings.gammaSetting = gamma;
-                ModAPI.displayToChat({ msg: "§eFullbright enabled!" });
-                toggled = true;
-            } else {
-                ModAPI.settings.gammaSetting = normalGamma;
-                ModAPI.displayToChat({ msg: "§cFullbright disabled!" });
-                toggled = false;
-            }
+    function notify(msg) {
+        // Try chat, fallback to console if unavailable
+        try {
+            ModAPI.displayToChat({msg: msg});
+        } catch {
+            console.log("[Fullbright] " + msg);
         }
-    });
-});
+    }
+
+    // Delay initialization slightly so settings exist
+    setTimeout(function() {
+        setGamma(normalGamma);
+        notify("Fullbright script loaded. Press F to toggle.");
+
+        ModAPI.addEventListener("key", function(ev) {
+            if (ev.key === 70) { // F key
+                toggled = !toggled;
+                if (toggled) {
+                    setGamma(gamma);
+                    notify("Fullbright enabled!");
+                } else {
+                    setGamma(normalGamma);
+                    notify("Fullbright disabled!");
+                }
+            }
+        });
+    }, 2000); // Wait 2 seconds after script load for API to initialize
+})();
